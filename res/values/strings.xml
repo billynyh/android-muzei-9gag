@@ -1,0 +1,6 @@
+<resources>
+
+    <string name="app_name">Muzei 9GAG</string>
+    <string name="source_name">9GAG</string>
+    <string name="source_description">Simply random images from first page of 9GAG Hot</string>
+</resources>

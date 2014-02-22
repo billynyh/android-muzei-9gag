@@ -2,5 +2,17 @@
 
     <string name="app_name">Muzei 9GAG</string>
     <string name="source_name">9GAG</string>
-    <string name="source_description">Simply random images from first page of 9GAG Hot</string>
+    <string name="source_description">Simply random images from different list of 9GAG</string>
+    <string name="title_settings">Muzei 9GAG Settings</string>
+    <string name="setting_update_freq">Update frequency</string>
+    <string name="setting_wifi_only">Update only when using WIFI</string>
+    <string name="setting_source">Pick from list:</string>
+    <string name="done">Done</string>
+
+    <string-array name="freq_array">
+        <item>1hr</item>
+        <item>3hr</item>
+        <item>6hr</item>
+        <item>1day</item>
+    </string-array>
 </resources>

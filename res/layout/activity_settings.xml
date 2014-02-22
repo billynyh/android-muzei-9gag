@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ScrollView 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+
+    android:paddingTop="72dp"
+>
+<LinearLayout 
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="24dp"
+    android:paddingRight="24dp"
+    android:background="#22000000">
+
+    <RelativeLayout style="@style/FpWc" android:orientation="horizontal">
+        <Spinner style="@style/WC" 
+            android:id="@+id/freqSpinner"
+            android:layout_alignParentRight="true"
+            android:textSize="@dimen/textSize"
+            android:textColor="#fff"
+        />
+        <TextView style="@style/FpWc" 
+            android:layout_toLeftOf="@id/freqSpinner"
+            android:text="@string/setting_update_freq" 
+            android:textSize="@dimen/textSize"
+            android:textColor="#fff"
+            android:layout_centerVertical="true"
+        />
+    </RelativeLayout> 
+
+    <CheckedTextView style="@style/FpWc" 
+        android:id="@+id/wifiConfig"
+        android:text="@string/setting_wifi_only"    
+        android:textSize="@dimen/textSize"
+        android:paddingTop="16dp"
+        android:paddingBottom="16dp"
+        android:checkMark="?android:attr/listChoiceIndicatorMultiple"
+        android:clickable="true"
+        android:gravity="left|center_vertical"
+    />
+
+    <TextView style="@style/FpWc"
+        android:textStyle="bold"
+        android:text="@string/setting_source"
+        android:paddingTop="20dp"
+        android:textSize="@dimen/textSize"
+        android:textColor="#fff"
+    />
+    <LinearLayout style="@style/FpWc"
+        android:orientation="vertical"
+        android:id="@+id/sourceContainer"
+        android:divider="?android:dividerHorizontal"
+        android:dividerPadding="2dp"
+        android:showDividers="middle|beginning"
+    >
+
+    </LinearLayout>
+
+
+</LinearLayout>
+</ScrollView>

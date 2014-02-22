@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.HashSet;
 
 import android.content.Context;
 import android.content.Intent;
@@ -26,13 +27,12 @@ import android.util.Log;
 
 public class GagArtSource extends RemoteMuzeiArtSource {
     private static final String TAG = "GagArtSource";
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     public static final int HR_TO_MS = 1000*60*60;
 
     public static final int COMMAND_ID_SHARE = 1;
 
-    //private static final int UPDATE_INTERVAL = 1 * 60 * 1000; // 1min
     Random mRandom;
     String mCurrentList;
     
@@ -60,6 +60,13 @@ public class GagArtSource extends RemoteMuzeiArtSource {
             return;
         }
 
+        Artwork currentArtwork = getCurrentArtwork();
+        String currentImageUrl = null;
+        if (currentArtwork != null) {
+            currentImageUrl = currentArtwork.getImageUri().toString();
+        }
+        if (DEBUG) Log.d(TAG, "current image: " + currentImageUrl);
+
 
         String url = pickPage();
         if (DEBUG) Log.d(TAG, "pick from page: " + url);
@@ -69,20 +76,26 @@ public class GagArtSource extends RemoteMuzeiArtSource {
             String body = request.body();
             ArrayList<Gag> list = parsePage(body); 
             
-            int i = mRandom.nextInt(list.size());
-            Gag gag = list.get(i);
-            
-            publishArtwork(new Artwork.Builder()
-                .title(gag.title)
-                .byline(gag.tag)
-                .imageUri(Uri.parse(gag.imageUrl))
-                .token(gag.id)
-                .viewIntent(new Intent(Intent.ACTION_VIEW,
-                    Uri.parse("http://9gag.com/gag/" + gag.id)))
-                .build());
-         
-            long next = System.currentTimeMillis() + getRotateTimeMillis();
-            scheduleUpdate(next);
+            for (int i=0;i<5;i++) { // retry at most 5 times if get the same image
+                int p = mRandom.nextInt(list.size());
+                Gag gag = list.get(p);
+                if (DEBUG) Log.d(TAG, "random picked: " + gag.imageUrl);
+                if (currentImageUrl != null && currentImageUrl.equals(gag.imageUrl)) continue;
+                
+                publishArtwork(new Artwork.Builder()
+                    .title(gag.title)
+                    .byline(gag.tag)
+                    .imageUri(Uri.parse(gag.imageUrl))
+                    .token(gag.id)
+                    .viewIntent(new Intent(Intent.ACTION_VIEW,
+                        Uri.parse("http://9gag.com/gag/" + gag.id)))
+                    .build());
+             
+                long next = System.currentTimeMillis() + getRotateTimeMillis();
+                scheduleUpdate(next);
+                if (DEBUG) Log.d(TAG, "finish publishArtWork");
+                break;
+            }
         } catch (Exception e) {
         }
     }
@@ -137,6 +150,27 @@ public class GagArtSource extends RemoteMuzeiArtSource {
             PreferenceHelper.setAvailableLists(this, availableList);
         }
 
+        // fetch long post information
+        String heightPatternString = "style=\"min-height:([\\d\\.]+)[^\\n]*.([^\\n]*)";
+        Pattern p1 = Pattern.compile(heightPatternString, Pattern.DOTALL);
+        Matcher m1 = p1.matcher(body);
+        if (DEBUG) Log.d(TAG, "m1 " + m1);
+        HashSet<String> longSet = new HashSet<String>();
+        while (m1.find()) { 
+            String t1 = m1.group(1);
+            String t2 = m1.group(2);
+            String id = extractGagIdFromImageUrl(t2);
+            
+            if (DEBUG) Log.d(TAG, "- check long post: " + id + " " + t1);
+
+            float val = Float.valueOf(t1);
+            if (val > 2000) {
+                if (DEBUG) Log.d(TAG, id + " could be long post");
+                longSet.add(id);
+            }
+            
+        }
+
         // fetch post
         String patternString = "data-title=\"([^\"]*)\"\\s*data-img=\"([^\"]*)\"";
         Pattern p = Pattern.compile(patternString, Pattern.MULTILINE);
@@ -146,10 +180,14 @@ public class GagArtSource extends RemoteMuzeiArtSource {
             String imageUrl = m.group(2);
             String id = extractGagIdFromImageUrl(imageUrl);
             if (DEBUG) Log.d(TAG, "~ extracted post: " + imageUrl);
-            String tag = mCurrentList == null ? "hot" : mCurrentList;
+            if (!longSet.contains(id)) {
+                String tag = mCurrentList == null ? "hot" : mCurrentList;
 
-            Gag g = new Gag(id, title, imageUrl, "#" + tag);
-            list.add(g);
+                Gag g = new Gag(id, title, imageUrl, "#" + tag);
+                list.add(g);
+            } else {
+                if (DEBUG) Log.d(TAG, "~~ skip long post: " + id);
+            }
         }
         return list;
     }
@@ -162,7 +200,7 @@ public class GagArtSource extends RemoteMuzeiArtSource {
     }
     
     private String extractGagIdFromImageUrl(String url) {
-        Pattern p = Pattern.compile("\\/photo\\/([\\w\\d]*)_700b.jpg");
+        Pattern p = Pattern.compile("\\/photo\\/([a-zA-Z\\d]*)_");
         Matcher m = p.matcher(url);
         if (m.find()) {
             return m.group(1);

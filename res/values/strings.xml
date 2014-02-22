@@ -8,11 +8,12 @@
     <string name="setting_wifi_only">Update only when using WIFI</string>
     <string name="setting_source">Pick from list:</string>
     <string name="done">Done</string>
+    <string name="action_share_post">Share post</string>
 
     <string-array name="freq_array">
-        <item>1hr</item>
-        <item>3hr</item>
-        <item>6hr</item>
-        <item>1day</item>
+        <item>1 hour</item>
+        <item>3 hour</item>
+        <item>6 hour</item>
+        <item>1 day</item>
     </string-array>
 </resources>

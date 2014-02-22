@@ -19,6 +19,7 @@ import com.billynyh.muzei9gag.util.HttpRequest;
 import com.billynyh.muzei9gag.util.PreferenceHelper;
 import com.google.android.apps.muzei.api.Artwork;
 import com.google.android.apps.muzei.api.RemoteMuzeiArtSource;
+import com.google.android.apps.muzei.api.UserCommand;
 
 import android.util.Log;
 
@@ -28,6 +29,8 @@ public class GagArtSource extends RemoteMuzeiArtSource {
     private static final boolean DEBUG = true;
 
     public static final int HR_TO_MS = 1000*60*60;
+
+    public static final int COMMAND_ID_SHARE = 1;
 
     //private static final int UPDATE_INTERVAL = 1 * 60 * 1000; // 1min
     Random mRandom;
@@ -41,7 +44,11 @@ public class GagArtSource extends RemoteMuzeiArtSource {
     @Override
     public void onCreate() {
         super.onCreate();
-        setUserCommands(BUILTIN_COMMAND_ID_NEXT_ARTWORK);
+        ArrayList<UserCommand> commands = new ArrayList<UserCommand>();
+        commands.add(new UserCommand(BUILTIN_COMMAND_ID_NEXT_ARTWORK));
+        commands.add(new UserCommand(COMMAND_ID_SHARE, getString(R.string.action_share_post)));
+
+        setUserCommands(commands);
         mRandom = new Random();
         PreferenceHelper.limitConfigFreq(this);
     }
@@ -79,6 +86,26 @@ public class GagArtSource extends RemoteMuzeiArtSource {
         } catch (Exception e) {
         }
     }
+
+    @Override
+    public void onCustomCommand(int id) {
+        super.onCustomCommand(id);
+
+        if (id == COMMAND_ID_SHARE) {
+            Artwork currentArtwork = getCurrentArtwork();
+            String detailUrl = currentArtwork.getViewIntent().getDataString();
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.setType("text/plain");
+            shareIntent.putExtra(Intent.EXTRA_TEXT, 
+                    currentArtwork.getTitle().trim()
+                    + " #Muzei9gag\n"
+                    + detailUrl);
+            shareIntent = Intent.createChooser(shareIntent, "Share post");
+            shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(shareIntent);
+        }
+    }
+
 
     private String pickPage() {
         final String PREFIX = "http://9gag.com/";

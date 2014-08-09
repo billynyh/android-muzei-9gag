@@ -97,6 +97,7 @@ public class GagArtSource extends RemoteMuzeiArtSource {
                 break;
             }
         } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -172,12 +173,17 @@ public class GagArtSource extends RemoteMuzeiArtSource {
         }
 
         // fetch post
-        String patternString = "data-title=\"([^\"]*)\"\\s*data-img=\"([^\"]*)\"";
+        //String patternString = "data-title=\"([^\"]*)\"\\s*data-img=\"([^\"]*)\"";
+        if (DEBUG) Log.d(TAG, "Fetch post");
+        String patternString = "img class=\"badge-item-img\" src=\"([^\"]*)\" alt=\"([^\"]*)\"";
         Pattern p = Pattern.compile(patternString, Pattern.MULTILINE);
         Matcher m = p.matcher(body);
         while (m.find()) { 
-            String title = m.group(1);
-            String imageUrl = m.group(2);
+            String title = m.group(2);
+            String imageUrl = m.group(1);
+
+            imageUrl = imageUrl.replace("460s", "700b");
+
             String id = extractGagIdFromImageUrl(imageUrl);
             if (DEBUG) Log.d(TAG, "~ extracted post: " + imageUrl);
             if (!longSet.contains(id)) {
@@ -189,6 +195,7 @@ public class GagArtSource extends RemoteMuzeiArtSource {
                 if (DEBUG) Log.d(TAG, "~~ skip long post: " + id);
             }
         }
+
         return list;
     }
 
